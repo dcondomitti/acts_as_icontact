@@ -16,7 +16,12 @@ module ActsAsIcontact
     
     # Returns the primary key ID for an existing resource.  Returns nil if the resource is a new record.
     def id
-      @properties[self.class.primary_key].to_i unless new_record?
+      case self.class.name.demodulize
+      when 'Subscription'
+        @properties[self.class.primary_key] unless new_record?
+      else
+        @properties[self.class.primary_key].to_i unless new_record?
+      end
     end
     
     # Returns the specific RestClient connection for an existing resource.  (E.g., the connection
@@ -131,7 +136,11 @@ module ActsAsIcontact
       query_options = default_options.merge(options).merge(:limit => 1) # Minor optimization
       validate_options(query_options)
       result = query_collection(query_options)
-      self.new(result[collection_name].first)
+      if result[collection_name].empty?
+        nil
+      else
+        self.new(result[collection_name].first)
+      end
     end
     
     # Returns the single resource at the URL identified by the passed integer.  Takes no options; this is 
